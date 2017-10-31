@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.dualexec.git.state.GitStateRepositories;
+import com.dualexec.git.state.exception.ResourceCreationException;
 import com.dualexec.git.state.exception.ResourceNotFoundException;
 
 @Service
@@ -38,7 +39,7 @@ public class RepositoryServiceBean implements RepositoryService {
 		List<Repository> repositories = new ArrayList<>();
 		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(baseRepositoryPath)) {
 			for (Path path : directoryStream) {
-				Repository repository = new Repository(path.getFileName().toString());
+				Repository repository = new Repository(path.getFileName().toString(), "");
 				repositories.add(repository);
 			}
 		} catch (IOException e) {
@@ -52,7 +53,7 @@ public class RepositoryServiceBean implements RepositoryService {
 	public Repository getRepository(String id) {
 		Path baseRepositoryPath = GitStateRepositories.getInstance().getBaseRepositoryPath();
 		if (Files.exists(baseRepositoryPath.resolve(id))) {
-			return new Repository(id);
+			return new Repository(id, "");
 		}
 		throw new ResourceNotFoundException(0L, "repository not found");
 	}
@@ -98,6 +99,18 @@ public class RepositoryServiceBean implements RepositoryService {
 		} catch (NoSuchElementException e) {
 			logger.error("Could not find commitId in repository.", e);
 			throw new ResourceNotFoundException(0L, "failed to load commit");
+		}
+	}
+
+	@Override
+	public void cloneRepository(Repository repository) {
+		Path baseRepositoryPath = GitStateRepositories.getInstance().getBaseRepositoryPath();
+		Path repositoryPath = baseRepositoryPath.resolve(repository.getName());
+		try {
+			Git.cloneRepository().setURI(repository.getUrl()).setDirectory(repositoryPath.toFile()).call();
+		} catch (GitAPIException e) {
+			logger.error("Could not find commitId in repository.", e);
+			throw new ResourceCreationException(0L, "failed to clone repository");
 		}
 	}
 

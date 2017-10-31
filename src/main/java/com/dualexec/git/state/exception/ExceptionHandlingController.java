@@ -13,7 +13,15 @@ public class ExceptionHandlingController {
 		ExceptionResponse response = new ExceptionResponse();
 		response.setErrorCode("Not Found");
 		response.setErrorMessage(ex.getMessage());
-
 		return new ResponseEntity<ExceptionResponse>(response, HttpStatus.NOT_FOUND);
 	}
+
+	@ExceptionHandler(ResourceCreationException.class)
+	public ResponseEntity<ExceptionResponse> resourceCreationFailed(ResourceCreationException ex) {
+		ExceptionResponse response = new ExceptionResponse();
+		response.setErrorCode("Creation failed");
+		response.setErrorMessage(ex.getMessage());
+		return new ResponseEntity<ExceptionResponse>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
 }

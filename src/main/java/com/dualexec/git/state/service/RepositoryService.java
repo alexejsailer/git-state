@@ -12,4 +12,6 @@ public interface RepositoryService {
 
 	Commit getCommit(String repositoryId, String commitId);
 
+	void cloneRepository(Repository repository);
+
 }
